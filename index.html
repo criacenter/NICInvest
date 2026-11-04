@@ -1162,6 +1162,9 @@
   .div-field-overlay .df-sub{ font-size:0.62em; font-weight:700; margin-left:0.35em; }
   .crit-num{ width:130px; }
   .crit-pct{ width:64px; }
+  .us-acesso{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-dim); margin:2px 0; white-space:nowrap; cursor:pointer; }
+  .us-acesso input{ width:15px; height:15px; accent-color:var(--gold-bright); }
+  #listaUsuariosWrap .data-table td{ vertical-align:top; }
 </style>
 <style>
   /* ---------- Aba Resultados ---------- */
@@ -1305,6 +1308,9 @@
   .div-field-overlay .df-sub{ font-size:0.62em; font-weight:700; margin-left:0.35em; }
   .crit-num{ width:130px; }
   .crit-pct{ width:64px; }
+  .us-acesso{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-dim); margin:2px 0; white-space:nowrap; cursor:pointer; }
+  .us-acesso input{ width:15px; height:15px; accent-color:var(--gold-bright); }
+  #listaUsuariosWrap .data-table td{ vertical-align:top; }
 </style>
 </head>
 <body>
@@ -1385,11 +1391,9 @@
     </div>
     <div id="diretorExtras" style="display:none;">
       <div class="field" style="margin-bottom:10px;">
-        <label for="cadastroCodigoDiretor">Código de confirmação (fornecido pela Diretoria)</label>
+        <label for="cadastroCodigoDiretor">Código de Diretor (fornecido pela gestão)</label>
         <div class="input-row"><input type="password" id="cadastroCodigoDiretor" autocomplete="off"></div>
       </div>
-      <div class="section-sub" style="margin-bottom:8px;">É você?</div>
-      <div style="display:flex; gap:10px; margin-bottom:16px;" id="perfisDiretoresPicker"></div>
     </div>
     <div class="grid">
       <div class="field">
@@ -1479,7 +1483,7 @@
   <h1>NIC Invest</h1>
   <p class="lede">Busque na base de cartas dos fornecedores a melhor opção para o cliente — carta única ou combinada, com o acréscimo da NIC já calculado — e gere o card de proposta pronto para o WhatsApp.</p>
 
-  <div class="admin-only perfil-ativo-bar" id="perfilAtivoWrap" style="display:none;">
+  <div class="perfil-ativo-bar" id="perfilAtivoWrap" data-acesso="emNome" data-disp="flex" style="display:none;">
     <label for="perfilAtivoSelect" style="font-size:13px; color:var(--ink-dim); white-space:nowrap;">Gerar cards em nome de:</label>
     <select id="perfilAtivoSelect" style="flex:1; min-width:180px;"></select>
     <span class="section-sub" style="margin:0; flex-basis:100%;">Use isso pra responder um pedido de cotação que chegou por fora, já com o contato do Consultor ou Executivo certo no card.</span>
@@ -1487,18 +1491,23 @@
 
   <div class="tabs">
     <button class="tab-btn" data-tab="busca">Buscar cartas</button>
-    <button class="tab-btn active admin-only" data-tab="individual">Calculadora individual</button>
-    <button class="tab-btn admin-only" data-tab="base">Base de cartas</button>
-    <button class="tab-btn admin-only" data-tab="divulgacao">Divulgação</button>
-    <button class="tab-btn admin-only" data-tab="usuarios">Usuários</button>
+    <button class="tab-btn active" data-acesso="calculadora" data-tab="individual">Calculadora individual</button>
+    <button class="tab-btn" data-acesso="base" data-tab="base">Base de cartas</button>
+    <button class="tab-btn" data-acesso="divulgacao" data-tab="divulgacao">Divulgação</button>
+    <button class="tab-btn" data-acesso="diretor" data-tab="usuarios">Usuários</button>
     <button class="tab-btn" data-tab="resultados">Resultados</button>
   </div>
 
   <!-- ===================== ABA ADMIN/DIRETOR — GERENCIAR USUÁRIOS ===================== -->
-  <div class="panel-view admin-only" id="view-usuarios">
+  <div class="panel-view" data-acesso="diretor" id="view-usuarios">
     <div class="stock-card">
       <div class="section-title" style="font-size:17px;">Perfis cadastrados</div>
-      <div class="section-sub">Ninguém vê a senha de ninguém. Se alguém esquecer, clique em "Enviar redefinição de senha": a pessoa recebe no e-mail um link para criar uma senha nova. Ela também pode fazer isso sozinha em "Esqueceu a senha?".</div>
+      <div class="section-sub">Perfis: <strong>Consultor</strong> (busca de cartas e os próprios resultados), <strong>Diretor</strong> (o mesmo do consultor, mais o relatório da equipe e esta gestão de usuários) e <strong>Administrador</strong> (tudo). Os acessos extras de cada pessoa são liberados pelo dono da ferramenta. Ninguém vê a senha de ninguém: se alguém esquecer, use "Enviar redefinição de senha".</div>
+      <div class="stock-card" data-acesso="dono" style="display:none; margin:16px 0 8px; padding:18px;">
+        <div class="section-title" style="font-size:15px;">Código para criar perfil de Diretor</div>
+        <div class="section-sub" id="codigoDiretorAtual" style="margin-bottom:10px;"></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;"><input class="inp" id="codigoDiretorNovo" placeholder="novo código (mín. 6 caracteres)" style="width:auto; min-width:240px;"><button class="btn sm primary" id="btnSalvarCodigoDiretor">Salvar código</button><span class="section-sub" id="codigoDiretorMsg" style="margin:0;"></span></div>
+      </div>
       <div class="section-title" style="font-size:15px; margin-top:18px;">Criar conta de consultor</div>
       <div class="section-sub">A equipe pode se cadastrar sozinha em "Criar conta". Se preferir, crie aqui a conta e passe usuário e senha para a pessoa.</div>
       <div class="grid" style="margin:12px 0 0;">
@@ -1525,7 +1534,7 @@
 
   <!-- ===================== ABA RESULTADOS (todos) ===================== -->
   <div class="panel-view" id="view-resultados">
-    <div class="admin-only">
+    <div data-acesso="diretor">
       <div class="stock-card">
         <div class="section-title" style="font-size:17px;">Resultados da equipe</div>
         <div class="section-sub">Escolha o período. O relatório abaixo é o mesmo que vai para o PDF.</div>
@@ -1625,7 +1634,7 @@
 
     <div class="btn-row" style="margin-bottom:24px; justify-content:flex-start;">
       <button class="btn primary" id="btnBuscarCartas">Buscar melhores opções</button>
-      <button class="btn admin-only" id="btnManual" style="display:none;">Montar manualmente</button>
+      <button class="btn" data-acesso="custos" id="btnManual" style="display:none;">Montar manualmente</button>
     </div>
 
     <div id="manualWrap" hidden>
@@ -1647,7 +1656,7 @@
   </div>
 
   <!-- ===================== TAB 1 — CALCULADORA INDIVIDUAL ===================== -->
-  <div class="panel-view active admin-only" id="view-individual">
+  <div class="panel-view active" data-acesso="calculadora" id="view-individual">
 
     <div class="grid">
       <div class="field">
@@ -1761,7 +1770,7 @@
   </div>
 
   <!-- ===================== BASE DE CARTAS (abastecimento — administração) ===================== -->
-  <div class="panel-view admin-only" id="view-base">
+  <div class="panel-view" data-acesso="base" id="view-base">
     <div class="stock-card">
       <div class="section-title" style="font-size:17px;">Atualizar uma lista</div>
       <div class="section-sub">Escolha o fornecedor e o tipo, cole a lista do jeito que veio (site ou WhatsApp) e confira a prévia antes de salvar. Só depois de salvar a equipe vê as cartas novas.</div>
@@ -1793,7 +1802,7 @@
   </div>
 
   <!-- ===================== DIVULGAÇÃO AUTOMÁTICA (administração) ===================== -->
-  <div class="panel-view admin-only" id="view-divulgacao">
+  <div class="panel-view" data-acesso="divulgacao" id="view-divulgacao">
     <div class="message info" style="margin-bottom:22px;" id="divComoFunciona">
       <strong>Como funciona:</strong> a ferramenta varre a base de cartas e já traz os cards prontos, com as artes da NIC. Entram só cartas com entrada final (já com o acréscimo da NIC) até o limite definido, parcela dentro do limite do segmento e crédito dentro da faixa que mais sai em cada segmento. As cartas Oportunidade entram todas.
     </div>
@@ -2842,7 +2851,7 @@
   // Cargo "Diretor" e liberado por codigo de confirmacao, nao mais por nome.
   // So o HASH (SHA-256) do codigo fica gravado aqui -- o codigo em si nunca aparece
   // no arquivo, entao quem abrir o HTML nao consegue lê-lo.
-  const DIRETOR_CODIGO_HASH = 'b126840b1edbebac1ab9edebd1c3c88ca56edacc1a8c9a0bf042a5f465872da2';
+  // O código de Diretor agora é definido pelo dono na aba Usuários e conferido pelo próprio banco (regras do Firebase).
 
   async function sha256Hex(texto){
     const enc = new TextEncoder().encode(texto);
@@ -2852,20 +2861,7 @@
 
   // Perfis conhecidos, so para preencher automaticamente contato/foto depois que o
   // codigo de confirmacao for validado -- nao trava mais o cadastro por nome.
-  const PERFIS_DIRETORES = [
-    {
-      nome: 'Igor Passos',
-      telefone: '(75) 9155-6388',
-      instagram: '@igorpassos',
-      fotoB64: 'data:image/jpeg;base64,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'
-    },
-    {
-      nome: 'Marcos Faustino',
-      telefone: '(75) 9301-1007',
-      instagram: '@marcos.faustinoo',
-      fotoB64: 'data:image/jpeg;base64,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'
-    }
-  ];
+  const PERFIS_DIRETORES = []; // perfis antigos removidos (quadro societário mudou)
 
   function normalizarNome(nome){
     return nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -3516,7 +3512,6 @@
   const fmtFx = (fx) => (fx || []).map((f) => f.n + 'x ' + BRL(f.v)).join(' + ');
   const fmtTaxa = (t) => t == null ? 'a confirmar' : formatPctTaxa(t);
   const HORAS_BASE_ALERTA = 20; // horas sem atualização para avisar que pode estar desatualizada
-  const ehAdminNIC = () => !!(CURRENT_USER && CURRENT_USER.role === 'admin');
   const nomeForn = (f) => M.FORNECEDORES[f] ? M.FORNECEDORES[f].nome : (f || '');
   const chaveLote = (f, t) => f + '_' + t;
   const chaveBanco = (f, t) => 'base:' + chaveLote(f, t);
@@ -3550,7 +3545,7 @@
     const horas = atual ? (Date.now() - Date.parse(atual)) / 36e5 : 0;
     if (!BASE.length){
       info.className = 'message danger';
-      info.textContent = 'A base de cartas ainda está vazia. ' + (ehAdminNIC() ? 'Cole as listas dos fornecedores na aba "Base de cartas".' : 'Aguarde a gestão alimentar a base.');
+      info.textContent = 'A base de cartas ainda está vazia. ' + (pode('base') ? 'Cole as listas dos fornecedores na aba "Base de cartas".' : 'Aguarde a gestão alimentar a base.');
     } else {
       info.className = 'message ' + (horas > HORAS_BASE_ALERTA ? 'warn' : 'info');
       info.innerHTML = `<strong>${BASE.length} cartas na base</strong> · última atualização em ${formatarDataHora(atual)}` +
@@ -3669,7 +3664,7 @@
   function parcelasCartaTxt(c){ return (M.ehOportunidade(c) ? 'entrada + ' + fmtFx(c.entradaParcelas) + ' · ' : '') + fmtFx(c.etapas); }
 
   function renderBase(){
-    if (!ehAdminNIC()) return;
+    if (!pode('base')) return;
     let h = '<thead><tr><th>Fornecedor</th><th>Tipo</th><th>Cartas</th><th>Atualizado em</th><th>Por</th></tr></thead><tbody>';
     Object.keys(M.FORNECEDORES).forEach((f) => Object.keys(M.TIPOS).forEach((t) => {
       const l = LOTES[chaveLote(f, t)];
@@ -3874,7 +3869,7 @@
 
   const ROTULO_CENARIO = { A: '10%', B: 'até o teto', C: '6% no limite', D: '6% acima do teto', P: 'personalizado' };
   function opcaoHTML(a, i, q, cede){
-    const admin = ehAdminNIC();
+    const admin = pode('custos');
     const delta = q && q.credito > 0 ? a.credito - q.credito : null;
     const acimaTeto = a.pctEntrada > M.TETO_PCT + 1e-6;
     let badges = '';
@@ -4262,7 +4257,7 @@
   }
 
   async function gerarDivulgacao(){
-    if (!ehAdminNIC()) return;
+    if (!pode('divulgacao')) return;
     const out = $id('divResultados');
     out.innerHTML = '<div class="message info">Montando os cards...</div>';
     if (!BASE_CARREGADA) await carregarBase();
@@ -4432,22 +4427,63 @@
     }
   });
 
-  async function aplicarPerfilNaInterface(){
-    document.getElementById('userBadge').textContent =
-      CURRENT_USER.nome + ' · ' + (CURRENT_USER.cargo || (CURRENT_USER.role === 'admin' ? 'Administrador' : ''));
-    document.querySelectorAll('.admin-only').forEach(el => {
-      el.style.display = CURRENT_USER.role === 'admin' ? '' : 'none';
-    });
-    document.querySelectorAll('.consultor-only').forEach(el => {
-      el.style.display = CURRENT_USER.role === 'admin' ? 'none' : '';
-    });
-    if (CURRENT_USER.role === 'admin') await popularPerfilAtivoSelect();
-    const defaultTab = CURRENT_USER.role === 'admin' ? 'individual' : 'busca';
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === defaultTab));
-    document.querySelectorAll('.panel-view').forEach(v => v.classList.toggle('active', v.id === 'view-' + defaultTab));
-    await carregarBase();
-    if (CURRENT_USER.role === 'admin') carregarTipos();
+  /* ======================= PERFIS E ACESSOS ======================= */
+  // Perfis: consultor · diretor (consultor + relatório da equipe + gestão de usuários) · admin (tudo).
+  // O dono da ferramenta (config/admin) libera acessos extras pessoa por pessoa na aba Usuários.
+  const ACESSOS = [
+    { k: 'calculadora', nome: 'Calculadora individual' },
+    { k: 'base', nome: 'Cadastro de cartas' },
+    { k: 'divulgacao', nome: 'Divulgação' },
+    { k: 'custos', nome: 'Ver custos e montar junção manual' },
+    { k: 'emNome', nome: 'Gerar cards em nome de outra pessoa' }
+  ];
+  const ROTULO_PERFIL = { consultor: 'Consultor', diretor: 'Diretor', admin: 'Administrador' };
+  let ADMIN_UID = null;
+  async function carregarAdminUid(){
+    if (ADMIN_UID) return ADMIN_UID;
+    try { const fb = await fbx(); const s = await fb.getDoc(fb.doc(fb.db, 'config', 'admin')); ADMIN_UID = s.exists() ? s.data().uid : null; } catch(e){}
+    return ADMIN_UID;
   }
+  const ehDono = (u) => { u = u || CURRENT_USER; return !!(u && ADMIN_UID && u.uid === ADMIN_UID); };
+  const ehAdmin = (u) => { u = u || CURRENT_USER; return !!(u && (ehDono(u) || u.role === 'admin')); };
+  const ehDiretor = (u) => { u = u || CURRENT_USER; return !!(u && (ehAdmin(u) || u.role === 'diretor')); };
+  const pode = (k, u) => { u = u || CURRENT_USER; return !!(u && (ehAdmin(u) || (u.permissoes && u.permissoes[k] === true))); };
+  function temAcesso(k){ return k === 'dono' ? ehDono() : k === 'diretor' ? ehDiretor() : pode(k); }
+
+  async function aplicarPerfilNaInterface(){
+    await carregarAdminUid();
+    document.getElementById('userBadge').textContent =
+      CURRENT_USER.nome + ' · ' + (CURRENT_USER.cargo || ROTULO_PERFIL[CURRENT_USER.role] || '');
+    document.querySelectorAll('[data-acesso]').forEach((el) => {
+      el.style.display = temAcesso(el.dataset.acesso) ? (el.dataset.disp || '') : 'none';
+    });
+    if (pode('emNome')) await popularPerfilAtivoSelect();
+    const defaultTab = pode('calculadora') ? 'individual' : 'busca';
+    document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === defaultTab));
+    document.querySelectorAll('.panel-view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + defaultTab));
+    await carregarBase();
+    if (pode('divulgacao')) carregarTipos();
+  }
+
+  /* ---------- Código para criar perfil de Diretor (só o dono) ---------- */
+  async function carregarCodigoDiretor(){
+    if (!ehDono()) return;
+    try {
+      const fb = await fbx(); const s = await fb.getDoc(fb.doc(fb.db, 'config', 'diretor'));
+      document.getElementById('codigoDiretorAtual').textContent = s.exists() && s.data().codigo ? 'Código atual: ' + s.data().codigo : 'Nenhum código definido: hoje ninguém consegue criar perfil de Diretor.';
+    } catch(e){ document.getElementById('codigoDiretorAtual').textContent = 'Não consegui ler o código (confira as regras do Firebase).'; }
+  }
+  document.getElementById('btnSalvarCodigoDiretor').addEventListener('click', async () => {
+    const inp = document.getElementById('codigoDiretorNovo'), msg = document.getElementById('codigoDiretorMsg');
+    const codigo = inp.value.trim();
+    if (codigo.length < 6){ msg.textContent = 'Use pelo menos 6 caracteres.'; return; }
+    try {
+      const fb = await fbx();
+      await fb.setDoc(fb.doc(fb.db, 'config', 'diretor'), { codigo, atualizadoEm: new Date().toISOString() });
+      inp.value = ''; msg.textContent = 'Código salvo. Quem tiver esse código pode criar perfil de Diretor.';
+      carregarCodigoDiretor();
+    } catch(e){ msg.textContent = traduzErroFirebase(e); }
+  });
 
   /* ---------- Login / cadastro ---------- */
   function mostrarErro(id, msg){
@@ -4512,66 +4548,70 @@
   async function carregarListaUsuarios(){
     const wrap = document.getElementById('listaUsuariosWrap');
     wrap.innerHTML = '<div class="section-sub">Carregando...</div>';
+    carregarCodigoDiretor();
     let usuarios = [];
-    try {
-      usuarios = await listarTodosUsuarios();
-    } catch(e){
-      wrap.innerHTML = '<div class="message warn">Não consegui carregar a lista.</div>';
-      return;
-    }
-    if (usuarios.length === 0){
-      wrap.innerHTML = '<div class="section-sub">Nenhum usuário cadastrado ainda.</div>';
-      return;
-    }
-    const table = document.createElement('table');
-    table.style.cssText = 'width:100%; border-collapse:collapse; font-size:13px;';
-    table.innerHTML = `
-      <thead>
-        <tr style="text-align:left; border-bottom:1px solid var(--line);">
-          <th style="padding:8px 6px;">Nome</th>
-          <th style="padding:8px 6px;">Usuário</th>
-          <th style="padding:8px 6px;">Cargo</th>
-          <th style="padding:8px 6px;">E-mail</th>
-          <th style="padding:8px 6px;"></th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    `;
-    const tbody = table.querySelector('tbody');
+    try { usuarios = await listarTodosUsuarios(); }
+    catch(e){ wrap.innerHTML = '<div class="message warn">Não consegui carregar a lista.</div>'; return; }
+    if (!usuarios.length){ wrap.innerHTML = '<div class="section-sub">Nenhum usuário cadastrado ainda.</div>'; return; }
+    const dono = ehDono();
+    // Quem pode mexer em quem: ninguém mexe em si mesmo nem no dono; diretor não mexe em administrador
+    const podeEditar = (u) => u.uid !== CURRENT_USER.uid && !ehDono(u) && (dono || (ehDiretor() && u.role !== 'admin' && !ehAdmin(u)));
+    const opcoesPerfil = (u) => ['consultor', 'diretor'].concat(dono ? ['admin'] : [])
+      .map((r) => `<option value="${r}"${(u.role || 'consultor') === r ? ' selected' : ''}>${ROTULO_PERFIL[r]}</option>`).join('');
+    let h = `<div class="table-wrap"><table class="data-table"><thead><tr><th>Nome</th><th>Perfil</th><th>Situação</th><th>Acessos extras</th><th></th></tr></thead><tbody>`;
     usuarios.forEach((u) => {
-      const tr = document.createElement('tr');
-      tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-      tr.innerHTML = `
-        <td style="padding:8px 6px;">${u.nome || ''}</td>
-        <td style="padding:8px 6px; font-family:'JetBrains Mono', monospace;">${u.username || ''}</td>
-        <td style="padding:8px 6px;">${u.cargo || (u.role === 'admin' ? 'Administrador' : '')}</td>
-        <td style="padding:8px 6px;">${u.email || ''}</td>
-        <td style="padding:8px 6px; text-align:right;"></td>
-      `;
-      const btnTd = tr.querySelector('td:last-child');
-      const btnReset = document.createElement('button');
-      btnReset.className = 'btn';
-      btnReset.style.cssText = 'padding:6px 12px; font-size:12px;';
-      btnReset.textContent = 'Enviar redefinição de senha';
-      btnReset.disabled = !u.email;
-      btnReset.addEventListener('click', async () => {
-        if (!confirm(`Enviar para ${u.email} um link para ${u.nome} criar uma senha nova?`)) return;
-        btnReset.disabled = true;
-        btnReset.textContent = 'Enviando...';
-        try {
-          const fb = await fbx();
-          await fb.sendPasswordResetEmail(fb.auth, u.email);
-          btnReset.textContent = 'Link enviado';
-        } catch(e){
-          btnReset.textContent = 'Falhou — tenta de novo';
-          btnReset.disabled = false;
-        }
-      });
-      btnTd.appendChild(btnReset);
-      tbody.appendChild(tr);
+      const ed = podeEditar(u);
+      const bloqueado = u.status === 'bloqueado';
+      const perfilHTML = ed ? `<select class="us-role">${opcoesPerfil(u)}</select>`
+        : (ehDono(u) ? 'Dono' : ROTULO_PERFIL[u.role] || 'Consultor');
+      const situacaoHTML = ed ? `<select class="us-status"><option value="ativo"${bloqueado ? '' : ' selected'}>Ativo</option><option value="bloqueado"${bloqueado ? ' selected' : ''}>Bloqueado</option></select>`
+        : (bloqueado ? '<span class="selo vermelho">Bloqueado</span>' : 'Ativo');
+      let acessosHTML;
+      if (ehAdmin(u)) acessosHTML = '<span class="lote-vazio">tudo</span>';
+      else if (dono) acessosHTML = ACESSOS.map((a) => `<label class="us-acesso"><input type="checkbox" data-k="${a.k}"${u.permissoes && u.permissoes[a.k] ? ' checked' : ''}> ${a.nome}</label>`).join('');
+      else acessosHTML = ACESSOS.filter((a) => u.permissoes && u.permissoes[a.k]).map((a) => `<span class="selo">${a.nome}</span>`).join('') || '<span class="lote-vazio">—</span>';
+      h += `<tr data-uid="${esc(u.uid)}"${bloqueado ? ' style="opacity:.6;"' : ''}>
+        <td><strong>${esc(u.nome || '')}</strong><div class="lote-vazio" style="font-size:11.5px;">${esc(u.username || '')} · ${esc(u.cargo || '')}${u.email ? ' · ' + esc(u.email) : ''}</div></td>
+        <td>${perfilHTML}</td><td>${situacaoHTML}</td><td class="us-acessos">${acessosHTML}</td>
+        <td style="text-align:right; white-space:nowrap;"><span class="us-msg lote-vazio" style="font-size:11.5px; margin-right:8px;"></span><button class="btn sm us-reset"${u.email ? '' : ' disabled'}>Enviar redefinição de senha</button></td></tr>`;
     });
-    wrap.innerHTML = '';
-    wrap.appendChild(table);
+    wrap.innerHTML = h + '</tbody></table></div>';
+    const porUid = {}; usuarios.forEach((u) => { porUid[u.uid] = u; });
+    async function salvar(tr, dados, desfazer){
+      const m = tr.querySelector('.us-msg'); m.textContent = 'salvando...';
+      try {
+        const fb = await fbx();
+        await fb.updateDoc(fb.doc(fb.db, 'usuarios', tr.dataset.uid), dados);
+        Object.assign(porUid[tr.dataset.uid], dados);
+        m.textContent = 'salvo ✓'; setTimeout(() => { m.textContent = ''; }, 2500);
+      } catch(e){ m.textContent = 'não salvou'; if (desfazer) desfazer(); alert(traduzErroFirebase(e)); }
+    }
+    wrap.querySelectorAll('tbody tr').forEach((tr) => {
+      const u = porUid[tr.dataset.uid];
+      const r = tr.querySelector('.us-role');
+      if (r) r.addEventListener('change', () => {
+        const ant = u.role || 'consultor';
+        if (r.value === 'admin' && !confirm(`Tornar ${u.nome} Administrador? Ele passa a ter acesso a tudo.`)){ r.value = ant; return; }
+        salvar(tr, { role: r.value }, () => { r.value = ant; }).then(() => { if (dono) carregarListaUsuarios(); });
+      });
+      const s = tr.querySelector('.us-status');
+      if (s) s.addEventListener('change', () => {
+        const ant = u.status || 'ativo';
+        salvar(tr, { status: s.value }, () => { s.value = ant; }).then(() => { tr.style.opacity = s.value === 'bloqueado' ? '.6' : ''; });
+      });
+      tr.querySelectorAll('.us-acesso input').forEach((cb) => cb.addEventListener('change', () => {
+        const perm = Object.assign({}, u.permissoes || {});
+        if (cb.checked) perm[cb.dataset.k] = true; else delete perm[cb.dataset.k];
+        salvar(tr, { permissoes: perm }, () => { cb.checked = !cb.checked; });
+      }));
+      const b = tr.querySelector('.us-reset');
+      b.addEventListener('click', async () => {
+        if (!confirm(`Enviar para ${u.email} um link para ${u.nome} criar uma senha nova?`)) return;
+        b.disabled = true; b.textContent = 'Enviando...';
+        try { const fb = await fbx(); await fb.sendPasswordResetEmail(fb.auth, u.email); b.textContent = 'Link enviado'; }
+        catch(e){ b.textContent = 'Falhou — tenta de novo'; b.disabled = false; }
+      });
+    });
   }
 
   const btnAtualizarUsuarios = document.getElementById('btnAtualizarUsuarios');
@@ -4646,6 +4686,11 @@
   }
 
   async function entrarComoUsuario(user){
+    if (user && user.status === 'bloqueado'){
+      try { const fb = await fbx(); await fb.signOut(fb.auth); } catch(e){}
+      mostrarErro('loginErro', 'Seu acesso está bloqueado. Fale com a gestão.');
+      return;
+    }
     CURRENT_USER = user;
     document.getElementById('authGate').style.display = 'none';
     document.getElementById('appWrap').style.display = '';
@@ -4727,10 +4772,6 @@
     const extras = document.getElementById('diretorExtras');
     if (cargo === 'Diretor'){
       extras.style.display = 'block';
-      if (!extras.dataset.montado){
-        renderPerfisDiretoresPicker();
-        extras.dataset.montado = '1';
-      }
     } else {
       extras.style.display = 'none';
     }
@@ -4800,16 +4841,11 @@
     if (cargo === 'Diretor'){
       const codigo = document.getElementById('cadastroCodigoDiretor').value;
       if (!codigo){
-        mostrarErro('cadastroErro', 'Informe o código de confirmação fornecido pela Diretoria.');
+        mostrarErro('cadastroErro', 'Informe o código de Diretor.');
         return;
       }
-      const hash = await sha256Hex(codigo);
-      if (hash !== DIRETOR_CODIGO_HASH){
-        mostrarErro('cadastroErro', 'Código de confirmação inválido.');
-        return;
-      }
-      role = 'admin';
-      codigoDiretor = codigo;
+      role = 'diretor';
+      codigoDiretor = codigo.trim();
     }
 
     const btn = document.getElementById('btnCadastrar');
@@ -4826,7 +4862,7 @@
       });
       await entrarComoUsuario(user);
     } catch(e){
-      mostrarErro('cadastroErro', traduzErroFirebase(e));
+      mostrarErro('cadastroErro', (role === 'diretor' && e && e.code === 'permission-denied') ? 'Código de Diretor inválido.' : traduzErroFirebase(e));
     } finally {
       fluxoEmAndamento = false;
       btn.disabled = false; btn.textContent = 'Criar conta';
@@ -5005,7 +5041,7 @@
       });
       msg.textContent = 'Semana salva. Obrigado!';
       carregarHistoricoProprio();
-      if (CURRENT_USER.role === 'admin') gerarRelatorio();
+      if (ehDiretor()) gerarRelatorio();
     } catch(e){
       msg.textContent = traduzErroFirebase(e);
     } finally {
@@ -5227,7 +5263,7 @@
   let resultadosIniciado = false;
   async function abrirResultados(){
     if (!CURRENT_USER) return;
-    const admin = CURRENT_USER.role === 'admin';
+    const admin = ehDiretor();
     if (!resultadosIniciado){
       montarSemanasForm();
       document.getElementById('resTipo').value = tipoDoPerfil(CURRENT_USER);
